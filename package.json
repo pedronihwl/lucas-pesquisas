@@ -1,0 +1,19 @@
+{
+  "name": "imo-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.14.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.3",
+    "@types/node": "^24.5.2"
+  }
+}
