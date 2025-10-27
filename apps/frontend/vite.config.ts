@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { resolve } from "node:path";
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -7,5 +8,10 @@ export default defineConfig({
   server: {
     port: 3000
   },
-  base: process.env.VITE_GITHUB_PAGES ? '/lucas-pesquisas/' : '/'
+  envDir: resolve(__dirname, "../../"),
+  resolve: {
+		alias: {
+			"@": resolve(__dirname, "./src")
+		},
+	},
 })

@@ -1,0 +1,39 @@
+name: CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  azure-login-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify Azure Authentication
+        run: |
+          echo "=========================================="
+          echo "Azure CLI Authentication Test"
+          echo "=========================================="
+          echo ""
+          echo "✅ Authentication successful!"
+          echo ""
+          echo "Subscription Info:"
+          az account show --output table
+          echo ""
+          echo "Resource Groups:"
+          az group list --query "[].{Name:name, Location:location}" --output table
+          echo ""
+          echo "=========================================="

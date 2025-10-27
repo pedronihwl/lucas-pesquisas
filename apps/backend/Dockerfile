@@ -32,7 +32,4 @@ COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 WORKDIR /app/apps/backend
 
 EXPOSE 3000
-
-ENV NODE_ENV=production
-
 CMD ["node", "dist/main.js"]
