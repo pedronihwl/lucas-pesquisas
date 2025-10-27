@@ -21,21 +21,21 @@ jobs:
           echo "Secrets Validation"
           echo "=========================================="
           echo ""
-          if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then
+          if [ -z "$AZURE_CLIENT_ID" ]; then
             echo "❌ AZURE_CLIENT_ID is NOT set"
           else
             echo "✅ AZURE_CLIENT_ID is set (${#AZURE_CLIENT_ID} characters)"
             echo "   Preview: ${AZURE_CLIENT_ID:0:8}..."
           fi
           echo ""
-          if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then
+          if [ -z "$AZURE_TENANT_ID" ]; then
             echo "❌ AZURE_TENANT_ID is NOT set"
           else
             echo "✅ AZURE_TENANT_ID is set (${#AZURE_TENANT_ID} characters)"
             echo "   Preview: ${AZURE_TENANT_ID:0:8}..."
           fi
           echo ""
-          if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+          if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
             echo "❌ AZURE_SUBSCRIPTION_ID is NOT set"
           else
             echo "✅ AZURE_SUBSCRIPTION_ID is set (${#AZURE_SUBSCRIPTION_ID} characters)"
