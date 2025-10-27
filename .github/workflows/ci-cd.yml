@@ -8,65 +8,31 @@ permissions:
   contents: read
 
 jobs:
-  azure-login-test:
+  basic-resources-deploy:
     runs-on: ubuntu-latest
+    env:
+      SHARED_NAME: shared
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug - Check Secrets
-        run: |
-          echo "=========================================="
-          echo "Secrets Validation"
-          echo "=========================================="
-          echo ""
-          if [ -z "$AZURE_CLIENT_ID" ]; then
-            echo "❌ AZURE_CLIENT_ID is NOT set"
-          else
-            echo "✅ AZURE_CLIENT_ID is set (${#AZURE_CLIENT_ID} characters)"
-            echo "   Preview: ${AZURE_CLIENT_ID:0:8}..."
-          fi
-          echo ""
-          if [ -z "$AZURE_TENANT_ID" ]; then
-            echo "❌ AZURE_TENANT_ID is NOT set"
-          else
-            echo "✅ AZURE_TENANT_ID is set (${#AZURE_TENANT_ID} characters)"
-            echo "   Preview: ${AZURE_TENANT_ID:0:8}..."
-          fi
-          echo ""
-          if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
-            echo "❌ AZURE_SUBSCRIPTION_ID is NOT set"
-          else
-            echo "✅ AZURE_SUBSCRIPTION_ID is set (${#AZURE_SUBSCRIPTION_ID} characters)"
-            echo "   Preview: ${AZURE_SUBSCRIPTION_ID:0:8}..."
-          fi
-          echo ""
-          echo "=========================================="
-        env:
-          AZURE_CLIENT_ID: e6fc15c6-a429-42e8-8121-00eb2a6c6f14
-          AZURE_TENANT_ID: 960f34f8-a069-417e-a2c6-6d37875594e6
-          AZURE_SUBSCRIPTION_ID: e9f69829-d398-4054-b300-ff0412e37bc1
-
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: e6fc15c6-a429-42e8-8121-00eb2a6c6f14
-          tenant-id: 960f34f8-a069-417e-a2c6-6d37875594e6
-          subscription-id: e9f69829-d398-4054-b300-ff0412e37bc1
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Verify Azure Authentication
+      - name: Deploy Basic Resources
         run: |
-          echo "=========================================="
-          echo "Azure CLI Authentication Test"
-          echo "=========================================="
-          echo ""
-          echo "✅ Authentication successful!"
-          echo ""
-          echo "Subscription Info:"
-          az account show --output table
-          echo ""
-          echo "Resource Groups:"
-          az group list --query "[].{Name:name, Location:location}" --output table
-          echo ""
-          echo "=========================================="
+          az deployment sub create \
+            --location brazilsouth \
+            --template-file ./infra/shared/main.bicep \
+            --parameters name=$SHARED_NAME \
+            --name shared-infra-deployment
+          az deployment sub show \
+            --name shared-infra-deployment \
+            --query properties.outputs \
+            -o json
+          
