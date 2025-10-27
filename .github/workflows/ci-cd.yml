@@ -9,9 +9,14 @@ permissions:
 
 jobs:
   basic-resources-deploy:
+    name: 🚀 Deploy Basic Resources (tfstate, acr)
     runs-on: ubuntu-latest
     env:
       SHARED_NAME: shared
+    outputs:
+      acrname: ${{ steps.deploy.outputs.acrname }}
+      acrlogin: ${{ steps.deploy.outputs.acrlogin }}
+      acrusername: ${{ steps.deploy.outputs.acrusername }}
 
     steps:
       - name: Checkout code
@@ -24,15 +29,62 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy Basic Resources
+      - name: Deploy
+        id: deploy
         run: |
           az deployment sub create \
             --location brazilsouth \
             --template-file ./infra/shared/main.bicep \
             --parameters name=$SHARED_NAME \
-            --name shared-infra-deployment
-          az deployment sub show \
             --name shared-infra-deployment \
-            --query properties.outputs \
-            -o json
-          
+            --only-show-errors --output none
+
+          ACR_NAME=$(az deployment sub show \
+            --name shared-infra-deployment \
+            --query properties.outputs.containerRegistryName.value \
+            -o tsv)
+
+          ACR_LOGIN=$(az deployment sub show \
+            --name shared-infra-deployment \
+            --query properties.outputs.containerRegistryLoginServer.value \
+            -o tsv)
+
+          echo "acrname=$ACR_NAME" >> $GITHUB_OUTPUT
+          echo "acrlogin=$ACR_LOGIN" >> $GITHUB_OUTPUT
+          echo "acrusername=$ACR_NAME" >> $GITHUB_OUTPUT
+  build-backend:
+    name: 🐳 Build Backend
+    needs: [basic-resources-deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: set-tag
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "tag=prod" >> $GITHUB_OUTPUT
+          else
+            echo "tag=demo" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Docker Login
+        run: |
+          PASSWD=$(az acr credential show --name ${{ needs.basic-resources-deploy.outputs.acrname }} --query "passwords[0].value" -o tsv)
+          echo $PASSWD | docker login ${{ needs.basic-resources-deploy.outputs.acrlogin }} -u ${{ needs.basic-resources-deploy.outputs.acrusername }} --password-stdin
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/backend/Dockerfile
+          push: true
+          tags: ${{ needs.basic-resources-deploy.outputs.acrlogin }}/api:${{ steps.set-tag.outputs.tag }}
