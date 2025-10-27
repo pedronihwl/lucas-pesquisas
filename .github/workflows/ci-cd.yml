@@ -44,16 +44,16 @@ jobs:
           echo ""
           echo "=========================================="
         env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_CLIENT_ID: e6fc15c6-a429-42e8-8121-00eb2a6c6f14
+          AZURE_TENANT_ID: 960f34f8-a069-417e-a2c6-6d37875594e6
+          AZURE_SUBSCRIPTION_ID: e9f69829-d398-4054-b300-ff0412e37bc1
 
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: e6fc15c6-a429-42e8-8121-00eb2a6c6f14
+          tenant-id: 960f34f8-a069-417e-a2c6-6d37875594e6
+          subscription-id: e9f69829-d398-4054-b300-ff0412e37bc1
 
       - name: Verify Azure Authentication
         run: |
